@@ -488,7 +488,24 @@ void account::get_accept_balance_digest(  const boost::posix_time::ptime& new_ba
     digest = enc.result();
 }
 
+std::vector<std::string> get_trx_collection_ids( const account::trx_collection& trxs ){
+  std::vector<std::string> r;
+  account::trx_collection::const_iterator itr = trxs.begin();
+  while( itr != trxs.end() ) {
+    r.push_back( (*itr)->get_id() );
+  }
+  return r;
+}
 
+std::vector<std::string> account::get_inbox_ids()const {
+  return get_trx_collection_ids( m_in_box );
+}
+std::vector<std::string> account::get_outbox_ids()const {
+  return get_trx_collection_ids( m_out_box );
+}
+std::vector<std::string> account::get_applied_ids()const {
+  return get_trx_collection_ids( m_applied );
+}
 
 
 

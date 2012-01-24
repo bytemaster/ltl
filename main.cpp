@@ -18,10 +18,14 @@ int main( int argc, char** argv ) {
   ltl::dbo::ptr<ltl::identity>   dan                 = ms->create_identity( "dan", "danprops" );
   ltl::dbo::ptr<ltl::identity>   scott               = ms->create_identity( "scott", "scottprops" );
   ltl::dbo::ptr<ltl::asset>      corn                = ms->create_asset( "corn", "gmo" );
+  ltl::dbo::ptr<ltl::asset>      dollar              = ms->create_asset( "dollar", "$USD" );
   ltl::dbo::ptr<ltl::asset_note> dans_corn           = ms->create_asset_note(dan, corn, "dans corn", "cool" ); 
+  ltl::dbo::ptr<ltl::asset_note> scott_dollar        = ms->create_asset_note(scott, dollar, "scott dollarn", "awesome" ); 
 
-  ltl::dbo::ptr<ltl::account> dans_dans_corn_acnt    = ms->create_account( dan, dans_corn );
-  ltl::dbo::ptr<ltl::account> scotts_dans_corn_acnt  = ms->create_account( scott, dans_corn );
+  ltl::dbo::ptr<ltl::account> dans_dans_corn_acnt       = ms->create_account( dan, dans_corn );
+  ltl::dbo::ptr<ltl::account> scotts_dans_corn_acnt     = ms->create_account( scott, dans_corn );
+  ltl::dbo::ptr<ltl::account> dans_scott_dollar_acnt    = ms->create_account( dan, scott_dollar );
+  ltl::dbo::ptr<ltl::account> scotts_scott_dollar_acnt  = ms->create_account( scott, scott_dollar );
 
   try {
   // this should throw because scott has a 0 balance and cannot issue because he is not signer on note
@@ -45,11 +49,15 @@ int main( int argc, char** argv ) {
   wlog( "Allocating Signature Numbers" );
   ms->allocate_signature_numbers( dans_dans_corn_acnt, 10 );
   ms->allocate_signature_numbers( scotts_dans_corn_acnt, 5 );
+  ms->allocate_signature_numbers( dans_scott_dollar_acnt, 3 );
+  ms->allocate_signature_numbers( scotts_scott_dollar_acnt, 3 );
   slog( "Dan's Corn:\n%1%", dans_dans_corn_acnt->to_string() );
 
   wlog( "Accepting Balance" );
   ms->accept_applied_transactions( dans_dans_corn_acnt );
   ms->accept_applied_transactions( scotts_dans_corn_acnt );
+  ms->accept_applied_transactions( dans_scott_dollar_acnt );
+  ms->accept_applied_transactions( scotts_scott_dollar_acnt );
   slog( "Dan's Corn:\n%1%", dans_dans_corn_acnt->to_string() );
 
   wlog( "Signing tranaction" );
@@ -66,6 +74,16 @@ int main( int argc, char** argv ) {
   wlog( "Accepting Scott's Balance" );
   ms->accept_applied_transactions( scotts_dans_corn_acnt );
   slog( "Scott's Corn:\n%1%", scotts_dans_corn_acnt->to_string() );
+
+
+
+  wlog( "Starting Market Order" );
+  ltl::dbo::ptr<ltl::market_order> mo = ms->submit_order( ltl::market_order::buy, scotts_dans_corn_acnt, scotts_scott_dollar_acnt,
+                    1000,  313, 1, ltl::to_ptime( boost::chrono::system_clock::now() ), ltl::to_ptime( boost::chrono::system_clock::now() + boost::chrono::minutes(60*24*30) ) );
+  slog( "Scott's Corn:\n%1%", scotts_dans_corn_acnt->to_string() );
+  slog( "Scott's Dollars:\n%1%", scotts_scott_dollar_acnt->to_string() );
+  slog( "Dan's Corn:\n%1%", dans_dans_corn_acnt->to_string() );
+  slog( "Dan's Dollars:\n%1%", dans_scott_dollar_acnt->to_string() );
  // trx->sign( dans_dans_corn_acnt );
   
 

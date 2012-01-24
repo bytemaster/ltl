@@ -11,7 +11,7 @@ namespace ltl {
 
       const sha1& get_id()const;
       const std::string& name()const;
-      const std::string& properties();
+      const std::string& properties()const;
 
       dbo::collection<dbo::ptr<asset_note> > issuers;
 
@@ -23,7 +23,6 @@ namespace ltl {
       std::string           id; // sha1( asset_type.id + issuer.id ).tohex
       std::string           m_name;
       std::string           m_properties;
-
   };
 
   class asset_note : public dbo::ptr<asset_note> {
@@ -37,6 +36,7 @@ namespace ltl {
 
       const sha1&               get_id()const;
       const signature&          get_signature()const;
+      const std::string&        get_signature_b64()const;
       bool                      is_valid()const;
       const std::string&        properties()const;
       const std::string&        name()const;

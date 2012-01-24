@@ -27,9 +27,11 @@ namespace ltl {
 
 
   action::ptr create_transfer( const json::value& v ) { return boost::shared_ptr<action>(new transfer(v)); }
+  action::ptr create_offer( const json::value& v ) { return boost::shared_ptr<action>(new offer(v)); }
 
   bool action_factory_init() {
     act_factory()["transfer"] = create_transfer;
+    act_factory()["offer"] = create_offer;
   }
 
   static bool init_action_factory = action_factory_init();
@@ -68,5 +70,48 @@ namespace ltl {
     if( account == from ) return -amount;
     return amount;
   }
+
+
+
+  offer::offer( const json::value& v ) {
+    order_type = (std::string)v["order_type"];
+    asset_account = sha1(v["asset_account"]);
+    currency_account = sha1(v["currency_account"]);
+    amount  = v["ammount"];
+    min_amount  = v["min_amount"];
+    offer_price  = v["price"];
+    start  = to_ptime( (uint64_t) v["start"] );
+    end  = to_ptime( (uint64_t) v["end"] );
+  }
+
+  const std::string& offer::type()const {
+    static std::string t("offer");
+    return t;
+  }
+  json::value        offer::to_json()const {
+    json::value v;
+    v["order_type"] = order_type;
+    v["asset_account"] = std::string( asset_account );
+    v["currency_account"] = std::string( currency_account );
+    v["amount"] = amount;
+    v["min_amount"] = min_amount;
+    v["price"] = offer_price;
+    v["start"] = to_milliseconds(start);
+    v["end"] = to_milliseconds(end);
+    return v;
+  } 
+  std::vector<sha1>  offer::required_signatures()const {
+    std::vector<sha1> sigs(2);
+    sigs[0] = asset_account;
+    sigs[1] = currency_account;
+    return sigs;
+  }
+  int64_t            offer::apply( const sha1& account )const {
+    if( account == currency_account ) {
+      return -offer_price * amount;
+    }
+    return 0;
+  }
+
 
 }

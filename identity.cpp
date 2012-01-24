@@ -14,22 +14,22 @@ namespace ltl {
        */
       identity::identity( const public_key& pk, const std::string& _name,
                           uint64_t _date, const std::string& props,
-                          const signature& sig )  {
+                          const signature& sig, uint64_t _nonce )  {
           name       = _name;
           date       = _date;
           properties = props;
-          nonce      = 0;
+          nonce      = _nonce;
           
           set_public_key( pk );
-          set_signature( sig );
           set_id();
+          set_signature( sig );
 
           if( !is_valid() )
             LTL_THROW( "Invalid Signature creating identity '%1%'", %_name );
       }
 
       identity::identity( const public_key& pub, const dbo::ptr<private_identity>& pi,
-                          const std::string& _name, const std::string& props ) {
+                          const std::string& _name, const std::string& props, uint64_t _nonce ) {
         if( !pi ) {
             LTL_THROW( "Invalid Private Identity", %_name );
         }
@@ -38,7 +38,7 @@ namespace ltl {
         set_id();
         using namespace boost::chrono;
         date       = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
-        nonce      = 0;
+        nonce      = _nonce;
         name       = _name;
         properties = props;
 
@@ -52,10 +52,21 @@ namespace ltl {
           db_id   = *osha_id;
       }
       void identity::set_signature( const signature& sig ) {
-          osig = sig;
-          std::stringstream sssig;
-          sssig <<  sig;
-          id_sig = scrypt::base64_encode( sssig.str() );
+        
+        const sha1& i = get_id(); 
+        scrypt::sha1_encoder sig_digest;
+        sig_digest.write( (char*)i.hash, sizeof(i.hash) );
+        sig_digest.write( name.c_str(), name.size() );
+        sig_digest << date;
+        sig_digest.write( properties.c_str(), properties.size() );
+
+        scrypt::sha1 r = sig_digest.result();
+        if( !get_pub_key().verify( r, sig ) ) {
+          LTL_THROW( "Invalid signature for identity '%1%'", %std::string(i) );
+        }
+
+        osig = sig;
+        id_sig = scrypt::to_base64( sig );
       }
 
       void identity::set_public_key( const public_key& pk ) {
@@ -106,7 +117,8 @@ namespace ltl {
         signature sig;
         get_priv_key().sign( r, sig );
 
-        set_signature(sig);
+        osig   = sig;
+        id_sig = scrypt::to_base64(sig); 
       }
     
 
@@ -128,6 +140,11 @@ namespace ltl {
         }
         return *opub_key;
       }
+      const std::string& identity::get_pub_key_b64()const    { return pub_key;    }
+      uint64_t           identity::get_date()const           { return date;       }
+      uint64_t           identity::get_nonce()const          { return nonce;      }
+      const std::string& identity::get_properties()const     { return properties; }
+      const std::string& identity::get_signature_b64()const  { return id_sig;     }
 
       const signature&  identity::get_signature()const {
         if( !osig ) {

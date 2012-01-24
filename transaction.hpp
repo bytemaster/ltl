@@ -8,22 +8,6 @@
 #include <Wt/Dbo/Dbo>
 
 namespace ltl {
-    class transaction;
-}
-
-namespace Wt { namespace Dbo {
-
-  template<>
-  struct dbo_traits<ltl::transaction> : public dbo_default_traits {
-    typedef std::string IdType;
-    static IdType invalidId() { return IdType(); }
-    static const char* surrogateIdField() { return 0; }
-  };
-
-} } // namespace Wt::Dbo
-
-
-namespace ltl {
 
   struct signature_line {
     sha1                         account_id;
@@ -92,6 +76,8 @@ namespace ltl {
 
         sha1  get_digest()const;
 
+        bool can_sign()const; 
+
         /// returns the delta balance of applying this transaction to the given account
         int64_t apply( const sha1& account )const;
         boost::optional<uint64_t> get_signature_num_for( const sha1& account )const;
@@ -111,6 +97,9 @@ namespace ltl {
 
         void post_to_accounts();
         bool sign_host();
+
+        const std::string& get_host_signature_b64()const;
+        const std::string& get_host_note()const;
       private:
         mutable boost::optional<sha1>                         m_oid;
         mutable boost::optional<signature>                    m_ohost_signature;

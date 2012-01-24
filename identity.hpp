@@ -5,18 +5,24 @@
 
 namespace ltl {
 
+  /**
+   *  @ingroup ltl_dbo
+   *
+   *  Uniquely identifies a pseudonym that may or may not be linked to
+   *  a real-world name/address.
+   */
   class identity : public dbo::Dbo<identity>, public dbo::ptr<identity> {
     public:
       identity(){}
 
       identity( const public_key& pub, const dbo::ptr<private_identity>& priv_key,
-                const std::string& name, const std::string& props );
+                const std::string& name, const std::string& props, uint64_t _nonce = 0 );
 
       identity( const public_key& pk, 
                 const std::string& name,
                 uint64_t date,
                 const std::string& props,
-                const signature& sig );
+                const signature& sig, uint64_t _nonce = 0 );
 
 
       const sha1&        get_id()const;
@@ -24,6 +30,12 @@ namespace ltl {
       const public_key&  get_pub_key()const;
       const private_key& get_priv_key()const;
       const signature&   get_signature()const;
+      uint64_t           get_nonce()const;
+
+      uint64_t           get_date()const;
+      const std::string& get_properties()const;
+      const std::string& get_pub_key_b64()const;
+      const std::string& get_signature_b64()const;
       
       template<typename Action>
       void persist( Action& a );

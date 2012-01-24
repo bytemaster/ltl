@@ -257,4 +257,25 @@ namespace ltl {
   }
 
 
+  /**
+   *  This method processes all actions and detemines whether 
+   *  or not all requirements are met for the server to sign
+   *  the transaction and therefore include it in the next
+   *  balance agreement.
+   *
+   *  A transfer action requires that both from/to have signed
+   *  and that from/to accounts have sufficent balances.
+   *
+   *  A trade action requires that the time window has expired
+   *  or a cancel_trade has posted referencing this
+   *  trade or all trades have been met.
+   */
+  bool transaction::can_sign()const {
+
+
+  }
+  const std::string& transaction::get_host_signature_b64()const { return m_host_signature; }
+  const std::string& transaction::get_host_note()const          { return m_host_note;      }
+
+
 }

@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <json/value.hpp>
 #include <boost/function.hpp>
+#include <ltl/date_time.hpp>
 
 namespace ltl {
   typedef scrypt::sha1 sha1;
@@ -63,6 +64,67 @@ namespace ltl {
       sha1        from;
       sha1        to;
       int64_t     amount;
+  };
+
+
+  /**
+   *  Offer trx cannot be applied until:
+   *  1) close trade trx is signed.
+   *  2) sum(trade.delta_asset) == amount
+   *  3) start < now && now > end
+   *
+   *  When calculating the 'pending' balance, it assumes
+   *  that offer_price * amount is 'reserved' to fulfill 
+   *  this order.  No part of the offer will be entered
+   *  if it could result in a negative balance.
+   */
+  class offer : public action {
+    public:
+      offer( const json::value& v );
+      offer(){}
+
+      virtual const std::string&        type()const;
+      virtual json::value               to_json()const;
+      virtual std::vector<sha1>         required_signatures()const;
+      virtual int64_t                   apply( const sha1& account )const;
+
+      std::string order_type;
+      sha1        asset_account;    // account to depost to
+      sha1        currency_account; // account to pay from
+      uint64_t    amount;       // units to buy.
+      uint64_t    min_amount;   // minimal trade size
+      uint64_t    offer_price;  // units of currency account per asset account
+      ptime       start;
+      ptime       end;
+  };
+
+  /**
+   *  This action cannot be applied until offer_trx is applied.
+   *  
+   *  It must be part of a trx with a time between offer_trx start and end.
+   *  The sum of this trade and all other trades in the chain must be
+   *  less than or equal to asset amount and offer price * asset amount
+   *
+   */
+  class trade : public action {
+      virtual const std::string&        type()const;
+      virtual json::value               to_json()const;
+      virtual std::vector<sha1>         required_signatures()const;
+      virtual int64_t                   apply( const sha1& account )const;
+
+      sha1      offer_trx;        // offer trx or prior trade authorizing this trade.
+      sha1      asset_account;    // account to depost to
+      sha1      currency_account; // account to pay from
+      int64_t   delta_asset;
+      int64_t   delta_currency;
+  };
+
+  class close_trade {
+      virtual const std::string&        type()const;
+      virtual json::value               to_json()const;
+      virtual std::vector<sha1>         required_signatures()const;
+      virtual int64_t                   apply( const sha1& account )const;
+      sha1  offer_trx;                 // offer trx authorizing this trade.
   };
 
 } // namespace ltl

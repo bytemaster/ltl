@@ -2,12 +2,13 @@
 #include <ltl/identity.hpp>
 #include <ltl/account.hpp>
 #include <ltl/transaction.hpp>
+#include <ltl/market.hpp>
 
 namespace ltl {
 
       template<typename Action>
       void identity::persist( Action& a ) {
-        dbo::id( a, db_id, "id" );
+        dbo::id(    a, db_id,      "id"         );
         dbo::field( a, name,       "name"       );
         dbo::field( a, date,       "date"       );
         dbo::field( a, nonce,      "nonce"      );
@@ -78,4 +79,29 @@ namespace ltl {
         dbo::hasMany( a, m_ref_applied_accounts, dbo::ManyToMany, "applied" );
       }
 
+      template<typename Action>
+      void market_order::persist( Action& a ) {
+        dbo::id( a, order_trx, "order_trx" );
+        dbo::field( a, fill_trx, "fill_trx" );
+        dbo::field( a, type, "type" );
+        dbo::field( a, stock_note, "stock_note" );
+        dbo::field( a, cur_note, "cur_note" );
+        dbo::field( a, num, "num" );
+        dbo::field( a, price, "price" );
+        dbo::field( a, start_date, "start_date" );
+        dbo::field( a, end_date, "end_date" );
+        dbo::field( a, min_unit, "min_unit" );
+        dbo::field( a, num_unfilled, "num_unfilled" );
+        dbo::hasMany( a, buy_trades, dbo::ManyToOne, "buy_trades" );
+        dbo::hasMany( a, sell_trades, dbo::ManyToOne, "sell_trades" );
+      }
+
+      template<typename Action>
+      void market_trade::persist( Action& a ) {
+        dbo::belongsTo( a, buy_order, "buy_trades" );
+        dbo::belongsTo( a, sell_order, "sell_trades" );
+        dbo::field( a, num, "num" );
+        dbo::field( a, price, "price" );
+        dbo::field( a, timestamp, "timestamp" );
+      }
 }

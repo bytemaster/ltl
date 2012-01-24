@@ -11,6 +11,7 @@ namespace ltl {
   class asset;
   class asset_note;
   class transaction;
+  class market_order;
 }
 namespace Wt { namespace Dbo {
 
@@ -45,6 +46,20 @@ namespace Wt { namespace Dbo {
   template<>
   struct dbo_traits<ltl::asset_note> : public dbo_default_traits {
     typedef std::string IdType;
+    static IdType invalidId() { return IdType(); }
+    static const char* surrogateIdField() { return 0; }
+  };
+
+  template<>
+  struct dbo_traits<ltl::transaction> : public dbo_default_traits {
+    typedef std::string IdType;
+    static IdType invalidId() { return IdType(); }
+    static const char* surrogateIdField() { return 0; }
+  };
+
+  template<>
+  struct dbo_traits<ltl::market_order> : public dbo_default_traits {
+    typedef Wt::Dbo::ptr<ltl::transaction> IdType;
     static IdType invalidId() { return IdType(); }
     static const char* surrogateIdField() { return 0; }
   };

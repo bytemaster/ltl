@@ -27,6 +27,7 @@ namespace ltl {
     }
     return *sha_id;
   }
+  const std::string& asset::properties()const { return m_properties; }
 
   asset_note::asset_note( const dbo::ptr<identity>& issuer, const dbo::ptr<asset>& a,
                           const std::string& name, const std::string& props ) {
@@ -81,7 +82,7 @@ namespace ltl {
       m_id = *m_oid;
 
       if( !is_valid() ) {
-        LTL_THROW( "Invalid note properties '%1%'", %name );
+        LTL_THROW( "Invalid asset note signature '%1%'", %name );
       }
   }
 
@@ -107,6 +108,7 @@ namespace ltl {
     }
     return *m_osig;
   }
+  const std::string& asset_note::get_signature_b64()const { return m_issuer_sig; }
 
   /**
    *   asset( id == sha1( issuer.id + asset.id + name + props ) )

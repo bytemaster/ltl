@@ -43,6 +43,10 @@ namespace ltl {
 
       const trx_collection&  get_applied_transactions()const { return m_applied; }
 
+      std::vector<std::string> get_inbox_ids()const;
+      std::vector<std::string> get_outbox_ids()const;
+      std::vector<std::string> get_applied_ids()const;
+
       /**
        * Signature IDs are used to determine which signatures
        * are valid.  Each signature number may only be used once
@@ -74,9 +78,10 @@ namespace ltl {
                                      std::vector<uint64_t>& open_new_sig_ids,
                                      mtrx_map& mtrx )const;
 
-      void host_accept_balance( const signature& owner_sig, int64_t new_bal, const boost::posix_time::ptime& time, 
-                           const std::vector<uint64_t>& new_sig_nums, 
-                           const std::vector<sha1>& applied_trx_ids );
+      void host_accept_balance( const signature& owner_sig, int64_t new_bal, 
+                                const boost::posix_time::ptime& time, 
+                                const std::vector<uint64_t>& new_sig_nums, 
+                                const std::vector<sha1>& applied_trx_ids );
 
       void owner_accept_balance( const signature& owner_sig, const signature& server_sig,
                                  int64_t new_bal, const boost::posix_time::ptime& time, 
